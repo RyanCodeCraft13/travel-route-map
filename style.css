@@ -1,0 +1,45 @@
+body {
+    margin: 0;
+    font-family: 'Montserrat', sans-serif;
+    background: #0f0f0f;
+    color: white;
+}
+
+header {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(to right, #000000, #1c1c1c);
+    border-bottom: 2px solid #f39c12;
+}
+
+header h1 {
+    margin: 0;
+    letter-spacing: 3px;
+}
+
+#map {
+    height: 70vh;
+    width: 100%;
+}
+
+.stats {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    padding: 30px;
+    background: #111;
+}
+
+.card {
+    background: #1c1c1c;
+    padding: 20px 40px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid #f39c12;
+}
+
+.card h2 {
+    color: #f39c12;
+    font-size: 32px;
+    margin: 0;
+}
