@@ -1,6 +1,6 @@
 mapboxgl.accessToken = 'YOUR_MAPBOX_TOKEN_HERE';
 
-// Your Travel Memories
+// All your existing travel locations
 const travels = [
     { name: "Kidapawan City, North Cotabato", coords: [125.0897, 7.0083], type:"land" },
     { name: "Mabuhay, President Roxas, North Cotabato", coords: [124.7000, 7.1500], type:"land" },
@@ -20,29 +20,31 @@ const travels = [
     { name: "Arakan, North Cotabato", coords: [125.0500, 7.3500], type:"land" }
 ];
 
-// Initialize 3D Globe Map
+// Initialize 3D globe
 const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/dark-v11',
     center: [122.5, 11.5],
     zoom: 4,
     pitch: 60,
-    bearing: -20,
+    bearing: 0,
     projection: 'globe',
     antialias: true
 });
 
+// Fog for realism
 map.on('style.load', () => {
     map.setFog({
         color: 'rgb(10,10,20)',
-        'high-color': 'rgb(36,92,223)',
-        'horizon-blend': 0.2
+        "high-color": 'rgb(36,92,223)',
+        "horizon-blend": 0.2
     });
 });
 
+// Add all pins and route
 map.on('load', () => {
 
-    // Add Markers
+    // Add markers
     travels.forEach(place => {
         new mapboxgl.Marker({ color: place.type==="sea"?"#00BFFF":"#f39c12" })
             .setLngLat(place.coords)
@@ -50,7 +52,7 @@ map.on('load', () => {
             .addTo(map);
     });
 
-    // Draw Route Line
+    // Route line connecting all travels
     const routeCoords = travels.map(p=>p.coords);
     map.addSource('route', {
         type:'geojson',
@@ -72,37 +74,13 @@ map.on('load', () => {
     }
     document.getElementById("distance").innerText = totalDistance.toFixed(2);
 
-    // Airplane & Ship Animation
-    const airplane = document.createElement('div');
-    airplane.style.width='30px'; airplane.style.height='30px';
-    airplane.style.backgroundImage='url("https://cdn-icons-png.flaticon.com/512/744/744465.png")';
-    airplane.style.backgroundSize='contain'; airplane.style.position='absolute';
-    document.body.appendChild(airplane);
-
-    const ship = document.createElement('div');
-    ship.style.width='30px'; ship.style.height='30px';
-    ship.style.backgroundImage='url("https://cdn-icons-png.flaticon.com/512/69/69428.png")';
-    ship.style.backgroundSize='contain'; ship.style.position='absolute';
-    document.body.appendChild(ship);
-
-    let progress = 0;
-    function animate() {
-        let idx = Math.floor(progress);
-        const from = routeCoords[idx] || routeCoords[0];
-        const to = routeCoords[idx+1] || routeCoords[routeCoords.length-1];
-        if(!from || !to) return;
-
-        const lng = from[0] + (to[0]-from[0])*(progress%1);
-        const lat = from[1] + (to[1]-from[1])*(progress%1);
-        const p = map.project([lng, lat]);
-
-        // Animate airplane for land, ship for sea
-        if(travels[idx].type==="land") airplane.style.transform = `translate(${p.x}px,${p.y}px)`;
-        else ship.style.transform = `translate(${p.x}px,${p.y}px)`;
-
-        progress += 0.01;
-        if(progress>routeCoords.length-1) progress=0;
-        requestAnimationFrame(animate);
+    // Rotate globe slowly for 360 view
+    let rotate = 0;
+    function spinGlobe() {
+        rotate += 0.1;
+        if(rotate>360) rotate=0;
+        map.rotateTo(rotate, { duration: 50 });
+        requestAnimationFrame(spinGlobe);
     }
-    animate();
+    spinGlobe();
 });
