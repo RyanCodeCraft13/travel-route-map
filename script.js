@@ -1,66 +1,88 @@
-// Initialize map (Philippines Center)
-var map = L.map('map').setView([12.8797, 121.7740], 6);
+mapboxgl.accessToken = 'YOUR_MAPBOX_TOKEN_HERE';
 
-// Dark tile
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-}).addTo(map);
-
-// Travel Data
-var travels = [
-    {
-        name: "Manila",
-        coords: [14.5995, 120.9842],
-        date: "Jan 2024",
-        desc: "Business trip and city tour."
-    },
-    {
-        name: "Baguio",
-        coords: [16.4023, 120.5960],
-        date: "Dec 2024",
-        desc: "Cold weather escape."
-    },
-    {
-        name: "Cebu",
-        coords: [10.3157, 123.8854],
-        date: "March 2025",
-        desc: "Island adventure."
-    }
+const travels = [
+    { name: "Kidapawan City", coords: [125.0897, 7.0083] },
+    { name: "Mabuhay, President Roxas", coords: [124.7000, 7.1500] },
+    { name: "Marbel (Koronadal)", coords: [124.8500, 6.5000] },
+    { name: "Davao City", coords: [125.4553, 7.1907] },
+    { name: "Digos City", coords: [125.3581, 6.7492] },
+    { name: "Mlang, Cotabato", coords: [124.8800, 6.9500] },
+    { name: "Antique", coords: [122.0800, 11.0000] },
+    { name: "Tibiao, Antique", coords: [122.0500, 11.2833] },
+    { name: "Malumpati, Pandan", coords: [122.1167, 11.7333] },
+    { name: "Kalibo, Aklan", coords: [122.3750, 11.7000] },
+    { name: "Boracay", coords: [121.9250, 11.9674] },
+    { name: "Iloilo City", coords: [122.5644, 10.7202] },
+    { name: "Makati City", coords: [121.0244, 14.5547] },
+    { name: "MOA (Pasay)", coords: [120.9816, 14.5350] },
+    { name: "BGC Taguig", coords: [121.0450, 14.5547] },
+    { name: "Arakan, North Cotabato", coords: [125.0500, 7.3500] }
 ];
 
-// Add Markers
-travels.forEach(function(place) {
-    L.marker(place.coords)
-        .addTo(map)
-        .bindPopup(
-            "<h3>" + place.name + "</h3>" +
-            "<p><b>Date:</b> " + place.date + "</p>" +
-            "<p>" + place.desc + "</p>"
-        );
+const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/dark-v11',
+    center: [122.5, 11.5],
+    zoom: 4,
+    pitch: 60,
+    bearing: -20,
+    projection: 'globe',
+    antialias: true
 });
 
-// Draw Route Line
-var routeCoords = travels.map(place => place.coords);
+map.on('style.load', () => {
+    map.setFog({
+        color: 'rgb(10,10,20)',
+        "high-color": 'rgb(36, 92, 223)',
+        "horizon-blend": 0.2
+    });
+});
 
-var polyline = L.polyline(routeCoords, {
-    color: '#f39c12',
-    weight: 4,
-    opacity: 0.8
-}).addTo(map);
+map.on('load', () => {
 
-map.fitBounds(polyline.getBounds());
+    // Add markers
+    travels.forEach(place => {
+        new mapboxgl.Marker({ color: "#f39c12" })
+            .setLngLat(place.coords)
+            .setPopup(new mapboxgl.Popup().setHTML(`<h3>${place.name}</h3>`))
+            .addTo(map);
+    });
 
-// Calculate Distance
-function calculateDistance(coords) {
-    let total = 0;
+    // Route Line
+    map.addSource('route', {
+        type: 'geojson',
+        data: {
+            type: 'Feature',
+            geometry: {
+                type: 'LineString',
+                coordinates: travels.map(p => p.coords)
+            }
+        }
+    });
 
-    for (let i = 0; i < coords.length - 1; i++) {
-        total += map.distance(coords[i], coords[i + 1]);
+    map.addLayer({
+        id: 'route-line',
+        type: 'line',
+        source: 'route',
+        layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        paint: {
+            'line-color': '#f39c12',
+            'line-width': 4
+        }
+    });
+
+    // Stats
+    document.getElementById("places").innerText = travels.length;
+
+    let totalDistance = 0;
+    for (let i = 0; i < travels.length - 1; i++) {
+        const from = turf.point(travels[i].coords);
+        const to = turf.point(travels[i + 1].coords);
+        totalDistance += turf.distance(from, to);
     }
 
-    return (total / 1000).toFixed(2); // meters to KM
-}
-
-// Update Stats
-document.getElementById("totalPlaces").innerText = travels.length;
-document.getElementById("totalDistance").innerText = calculateDistance(routeCoords);
+    document.getElementById("distance").innerText = totalDistance.toFixed(2);
+});
