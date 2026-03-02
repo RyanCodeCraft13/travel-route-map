@@ -1,6 +1,6 @@
 mapboxgl.accessToken = 'YOUR_MAPBOX_TOKEN_HERE';
 
-// Updated Travel Memories
+// Your Travel Memories
 const travels = [
     { name: "Kidapawan City, North Cotabato", coords: [125.0897, 7.0083], type:"land" },
     { name: "Mabuhay, President Roxas, North Cotabato", coords: [124.7000, 7.1500], type:"land" },
@@ -20,7 +20,7 @@ const travels = [
     { name: "Arakan, North Cotabato", coords: [125.0500, 7.3500], type:"land" }
 ];
 
-// Initialize Map
+// Initialize 3D Globe Map
 const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/dark-v11',
@@ -33,12 +33,16 @@ const map = new mapboxgl.Map({
 });
 
 map.on('style.load', () => {
-    map.setFog({ color: 'rgb(10,10,20)', "high-color": 'rgb(36,92,223)', "horizon-blend": 0.2 });
+    map.setFog({
+        color: 'rgb(10,10,20)',
+        'high-color': 'rgb(36,92,223)',
+        'horizon-blend': 0.2
+    });
 });
 
 map.on('load', () => {
 
-    // Add markers
+    // Add Markers
     travels.forEach(place => {
         new mapboxgl.Marker({ color: place.type==="sea"?"#00BFFF":"#f39c12" })
             .setLngLat(place.coords)
@@ -46,10 +50,19 @@ map.on('load', () => {
             .addTo(map);
     });
 
-    // Route line
-    const routeCoords = travels.map(p => p.coords);
-    map.addSource('route', { type:'geojson', data:{ type:'Feature', geometry:{ type:'LineString', coordinates:routeCoords } } });
-    map.addLayer({ id:'route-line', type:'line', source:'route', layout:{ 'line-join':'round','line-cap':'round' }, paint:{ 'line-color':'#f39c12','line-width':4 } });
+    // Draw Route Line
+    const routeCoords = travels.map(p=>p.coords);
+    map.addSource('route', {
+        type:'geojson',
+        data:{ type:'Feature', geometry:{ type:'LineString', coordinates:routeCoords } }
+    });
+    map.addLayer({
+        id:'route-line',
+        type:'line',
+        source:'route',
+        layout:{ 'line-join':'round','line-cap':'round' },
+        paint:{ 'line-color':'#f39c12','line-width':4 }
+    });
 
     // Stats
     document.getElementById("places").innerText = travels.length;
@@ -83,7 +96,7 @@ map.on('load', () => {
         const lat = from[1] + (to[1]-from[1])*(progress%1);
         const p = map.project([lng, lat]);
 
-        // Land → airplane, Sea → ship
+        // Animate airplane for land, ship for sea
         if(travels[idx].type==="land") airplane.style.transform = `translate(${p.x}px,${p.y}px)`;
         else ship.style.transform = `translate(${p.x}px,${p.y}px)`;
 
